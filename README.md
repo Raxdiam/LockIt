@@ -13,3 +13,6 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/unlock` - Unlock the targeted container block
 - `/share <player>` - Share the targeted container block with another player (even if they are offline)
 - `/unshare <player>` - Un-share the targeted container block with a previously shared-with player
+
+### Planned
+- [ ] Share containers with teams
