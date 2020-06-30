@@ -1,29 +1,29 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "lockables",
   "version": "${version}",
 
-  "name": "Mod Template",
+  "name": "Lockables",
   "description": "",
   "authors": [
     "Raxdiam"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://raxdiam.com/",
+    "sources": "https://github.com/Raxdiam/Lockables"
   },
 
   "license": "GPL-3.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/lockables/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.raxdiam.template.TemplateMod"
+      "com.raxdiam.lockables.LockablesMod"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "lockables.mixins.json"
   ],
 
   "depends": {

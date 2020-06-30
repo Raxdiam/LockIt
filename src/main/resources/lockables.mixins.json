@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.raxdiam.lockables.mixin",
+  "compatibilityLevel": "JAVA_11",
+  "mixins": [
+
+  ],
+  "server": [
+    "LockableContainerBlockEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
