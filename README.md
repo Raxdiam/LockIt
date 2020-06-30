@@ -15,4 +15,9 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/unshare <player>` - Un-share the targeted container block with a previously shared-with player
 
 ### Planned
-- [ ] Share containers with teams
+- [x] Lock container block
+- [x] Unlock container block
+- [x] Share container block with another player
+- [x] Un-share container block from a shared-with player
+- [ ] Share container block with teams
+- [ ] Un-share container block from a shared-with team
