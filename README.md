@@ -14,7 +14,7 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/share <player>` - Share the targeted container block with another player (even if they are offline)
 - `/unshare <player>` - Un-share the targeted container block with a previously shared-with player
 
-### Planned
+### To-Do
 - [x] Lock container block
 - [x] Unlock container block
 - [x] Share container block with another player
