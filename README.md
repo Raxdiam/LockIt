@@ -19,6 +19,6 @@ Allows containers to be locked, unlocked, and shared using commands.
 - [x] Unlock container block
 - [x] Share container block with another player
 - [x] Un-share container block from a shared-with player
+- [x] Prevent hoppers from pulling/inserting items into/from a locked container
 - [ ] Share container block with teams
 - [ ] Un-share container block from a shared-with team
-- [ ] Prevent hoppers from pulling items when locked
