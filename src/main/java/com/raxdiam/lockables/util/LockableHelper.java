@@ -10,16 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
-import org.apache.logging.log4j.core.jmx.Server;
 
-import java.util.concurrent.locks.Lock;
-
-/*
-* I know that this is probably not the best way to go about organizing things but
-* my highest priority is for everything to just work right now with minimal repeated code and easy access.
-*
-* If you're reading this, you can let me know why this is wrong and what I should do to fix it.
-*/
 public class LockableHelper {
     public static void lock(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player) {
         access(blockEntity).lock(player);

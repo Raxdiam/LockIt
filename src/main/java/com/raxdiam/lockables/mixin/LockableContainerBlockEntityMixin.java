@@ -6,17 +6,17 @@ import com.raxdiam.lockables.LockablesMod;
 import com.raxdiam.lockables.accessor.ILockableContainerBlockEntityAccessor;
 import com.raxdiam.lockables.text.PrefixedText;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.ContainerLock;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Mixin(LockableContainerBlockEntity.class)
-public class LockableContainerBlockEntityMixin implements ILockableContainerBlockEntityAccessor {
+@Mixin(value = LockableContainerBlockEntity.class)
+public abstract class LockableContainerBlockEntityMixin implements ILockableContainerBlockEntityAccessor {
     private LockableLock lockable = LockableLock.EMPTY;
 
     @Inject(method = "fromTag", at = @At("TAIL"))
@@ -156,8 +156,17 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         }
     }
 
+    @Override
     public LockableLock getLockable() {
         return this.lockable;
+    }
+
+    private void onLock() {
+
+    }
+
+    private void onUnlock() {
+        
     }
 
     private static String[] toStringArray(List<String> list) {

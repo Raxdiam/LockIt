@@ -3,12 +3,9 @@ package com.raxdiam.lockables.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.raxdiam.lockables.command.ICommand;
-import com.raxdiam.lockables.text.PrefixedText;
 import com.raxdiam.lockables.util.LockableHelper;
-import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.util.Formatting;
 
 public class UnlockCommand implements ICommand<ServerCommandSource> {
     @Override

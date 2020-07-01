@@ -11,11 +11,9 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 public class UnshareCommand implements ICommand<ServerCommandSource> {
 
