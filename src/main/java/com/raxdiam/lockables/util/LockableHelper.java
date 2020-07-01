@@ -21,11 +21,11 @@ public class LockableHelper {
     }
 
     public static void shareWith(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player, GameProfile target) {
-        access(blockEntity).shareWith(player, target);
+        access(blockEntity).share(player, target);
     }
 
     public static void unshareWith(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player, GameProfile target) {
-        access(blockEntity).shareRemove(player, target);
+        access(blockEntity).unshare(player, target);
     }
 
     public static int setLockFromCommand(ServerCommandSource source, boolean locked) {

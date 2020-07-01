@@ -6,17 +6,17 @@ import com.raxdiam.lockables.LockablesMod;
 import com.raxdiam.lockables.accessor.ILockableContainerBlockEntityAccessor;
 import com.raxdiam.lockables.text.PrefixedText;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.block.enums.ChestType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -107,7 +107,7 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     }
 
     @Override
-    public void shareWith(ServerPlayerEntity player, GameProfile target) {
+    public void share(ServerPlayerEntity player, GameProfile target) {
         if (this.lockable.getOwner().isEmpty()) {
             this.lockable = new LockableLock(false, player.getUuid().toString(), new String[] {target.getId().toString()});
             player.sendMessage(PrefixedText.createLiteral("This container is now shared with " + target.getName() + "!", Formatting.GREEN), false);
@@ -134,7 +134,7 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     }
 
     @Override
-    public void shareRemove(ServerPlayerEntity player, GameProfile target) {
+    public void unshare(ServerPlayerEntity player, GameProfile target) {
         if (this.lockable.getOwner().isEmpty()) {
             player.sendMessage(PrefixedText.createLiteral("This container is not owned by anyone.", Formatting.YELLOW), false);
         } else {
@@ -162,6 +162,8 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     }
 
     private void onLock() {
+        var entity = (LootableContainerBlockEntity) (Object) this;
+        var state = entity.getCachedState().get(ChestBlock.CHEST_TYPE);
 
     }
 

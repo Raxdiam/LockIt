@@ -8,7 +8,7 @@ public interface ILockableContainerBlockEntityAccessor {
     boolean canAccess(ServerPlayerEntity player);
     void lock(ServerPlayerEntity player);
     void unlock(ServerPlayerEntity player);
-    void shareWith(ServerPlayerEntity player, GameProfile target);
-    void shareRemove(ServerPlayerEntity player, GameProfile target);
+    void share(ServerPlayerEntity player, GameProfile target);
+    void unshare(ServerPlayerEntity player, GameProfile target);
     LockableLock getLockable();
 }
