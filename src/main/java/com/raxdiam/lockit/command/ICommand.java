@@ -1,4 +1,4 @@
-package com.raxdiam.lockables.command;
+package com.raxdiam.lockit.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.CommandSource;

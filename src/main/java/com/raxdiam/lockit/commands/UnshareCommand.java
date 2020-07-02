@@ -1,10 +1,10 @@
-package com.raxdiam.lockables.commands;
+package com.raxdiam.lockit.commands;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.raxdiam.lockables.accessor.ILockableContainerBlockEntityAccessor;
-import com.raxdiam.lockables.command.ICommand;
-import com.raxdiam.lockables.util.LockableHelper;
+import com.raxdiam.lockit.accessor.ILockableContainerBlockEntityAccessor;
+import com.raxdiam.lockit.command.ICommand;
+import com.raxdiam.lockit.util.LockItHelper;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.command.arguments.GameProfileArgumentType;
 import net.minecraft.server.PlayerManager;
@@ -13,7 +13,6 @@ import net.minecraft.server.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.Collection;
-import java.util.UUID;
 
 public class UnshareCommand implements ICommand<ServerCommandSource> {
 
@@ -22,8 +21,8 @@ public class UnshareCommand implements ICommand<ServerCommandSource> {
         dispatcher.register(CommandManager.literal("unshare")
                 .then(CommandManager.argument("targets", GameProfileArgumentType.gameProfile()).suggests((commandContext, suggestionsBuilder) -> {
                     var source = commandContext.getSource();
-                    var player = LockableHelper.getPlayerFromCommandSource(source);
-                    var blockEntity = LockableHelper.getTargetedBlockEntity(player);
+                    var player = LockItHelper.getPlayerFromCommandSource(source);
+                    var blockEntity = LockItHelper.getTargetedBlockEntity(player);
                     if (!(blockEntity instanceof LockableContainerBlockEntity)) {
                         return CommandSource.suggestMatching(new String[]{}, suggestionsBuilder);
                     }
@@ -39,13 +38,13 @@ public class UnshareCommand implements ICommand<ServerCommandSource> {
     }
 
     public int run(ServerCommandSource source, Collection<GameProfile> targets) {
-        var player = LockableHelper.getPlayerFromCommandSource(source);
+        var player = LockItHelper.getPlayerFromCommandSource(source);
         if (player == null) return 0;
 
-        var blockEntity = LockableHelper.getTargetedBlockEntity(player);
+        var blockEntity = LockItHelper.getTargetedBlockEntity(player);
         if (blockEntity instanceof LockableContainerBlockEntity) {
             for (var target : targets) {
-                LockableHelper.unshareWith((LockableContainerBlockEntity) blockEntity, player, target);
+                LockItHelper.unshareWith((LockableContainerBlockEntity) blockEntity, player, target);
             }
             return 1;
         }

@@ -1,7 +1,7 @@
-package com.raxdiam.lockables.util;
+package com.raxdiam.lockit.util;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.raxdiam.lockables.command.ICommand;
+import com.raxdiam.lockit.command.ICommand;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandSource;
 

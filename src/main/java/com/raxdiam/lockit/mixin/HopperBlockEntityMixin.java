@@ -1,6 +1,6 @@
-package com.raxdiam.lockables.mixin;
+package com.raxdiam.lockit.mixin;
 
-import com.raxdiam.lockables.accessor.ILockableContainerBlockEntityAccessor;
+import com.raxdiam.lockit.accessor.ILockableContainerBlockEntityAccessor;
 import net.minecraft.block.HopperBlock;
 import net.minecraft.block.entity.HopperBlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;

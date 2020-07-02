@@ -1,4 +1,4 @@
-package com.raxdiam.lockables.text;
+package com.raxdiam.lockit.text;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.LiteralText;

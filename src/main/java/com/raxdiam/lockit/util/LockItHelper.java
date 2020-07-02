@@ -1,17 +1,18 @@
-package com.raxdiam.lockables.util;
+package com.raxdiam.lockit.util;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.raxdiam.lockables.accessor.ILockableContainerBlockEntityAccessor;
-import com.raxdiam.lockables.text.PrefixedText;
+import com.raxdiam.lockit.accessor.ILockableContainerBlockEntityAccessor;
+import com.raxdiam.lockit.text.PrefixedText;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 
-public class LockableHelper {
+public class LockItHelper {
     public static void lock(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player) {
         access(blockEntity).lock(player);
     }
@@ -24,15 +25,23 @@ public class LockableHelper {
         access(blockEntity).share(player, target);
     }
 
+    public static void shareWith(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player, Team team) {
+        access(blockEntity).share(player, team);
+    }
+
     public static void unshareWith(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player, GameProfile target) {
         access(blockEntity).unshare(player, target);
     }
 
+    public static void unshareWith(LockableContainerBlockEntity blockEntity, ServerPlayerEntity player, Team team) {
+        access(blockEntity).unshare(player, team);
+    }
+
     public static int setLockFromCommand(ServerCommandSource source, boolean locked) {
-        var player = LockableHelper.getPlayerFromCommandSource(source);
+        var player = LockItHelper.getPlayerFromCommandSource(source);
         if (player == null) return 0;
 
-        var blockEntity = LockableHelper.getTargetedBlockEntity(player);
+        var blockEntity = LockItHelper.getTargetedBlockEntity(player);
 
         if (blockEntity instanceof LockableContainerBlockEntity) {
             if (locked) lock((LockableContainerBlockEntity) blockEntity, player);

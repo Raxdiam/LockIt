@@ -1,9 +1,9 @@
-package com.raxdiam.lockables.commands;
+package com.raxdiam.lockit.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import com.raxdiam.lockables.command.ICommand;
-import com.raxdiam.lockables.util.LockableHelper;
+import com.raxdiam.lockit.command.ICommand;
+import com.raxdiam.lockit.util.LockItHelper;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -14,6 +14,6 @@ public class UnlockCommand implements ICommand<ServerCommandSource> {
     }
 
     public int run(CommandContext<ServerCommandSource> context) {
-        return LockableHelper.setLockFromCommand(context.getSource(), false);
+        return LockItHelper.setLockFromCommand(context.getSource(), false);
     }
 }

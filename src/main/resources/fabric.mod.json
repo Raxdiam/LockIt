@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "lockables",
+  "id": "lockit",
   "version": "${version}",
 
-  "name": "Lockables",
+  "name": "LockIt",
   "description": "",
   "authors": [
     "Raxdiam"
@@ -14,16 +14,16 @@
   },
 
   "license": "GPL-3.0",
-  "icon": "assets/lockables/icon.png",
+  "icon": "assets/lockit/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.raxdiam.lockables.LockablesMod"
+      "com.raxdiam.lockit.LockItMod"
     ]
   },
   "mixins": [
-    "lockables.mixins.json"
+    "lockit.mixins.json"
   ],
 
   "depends": {

@@ -8,9 +8,9 @@
   ],
   "server": [
     "LockableContainerBlockEntityMixin",
-    "AbstractBlockMixin",
     "ExplosionMixin",
-    "HopperBlockEntityMixin"
+    "HopperBlockEntityMixin",
+    "PlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
