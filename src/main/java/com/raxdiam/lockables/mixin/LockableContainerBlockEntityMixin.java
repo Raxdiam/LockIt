@@ -9,7 +9,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.block.enums.ChestType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -52,10 +51,10 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     @Override
     public boolean canAccess(ServerPlayerEntity player) {
         if (!this.lockable.getOwner().isEmpty()) {
-            var owner = UUID.fromString(this.lockable.getOwner());
+            var owner = this.lockable.getOwner().get();
             if (this.lockable.isActive()) {
                 if (owner.equals(player.getUuid())) return true;
-                else if (this.lockable.getShared().contains(player.getUuid().toString())) return true;
+                else if (this.lockable.getSharedList().contains(player.getUuid())) return true;
                 else return false;
             }
         }
@@ -66,17 +65,19 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     @Override
     public void lock(ServerPlayerEntity player) {
         if (this.lockable.getOwner().isEmpty()) {
-            this.lockable = new LockableLock(true, player.getUuid().toString());
+            //this.lockable = new LockableLock(true, player.getUuid().toString());
+            this.modifyLock(true, player.getUuid());
             player.sendMessage(PrefixedText.createLiteral("Container locked!", Formatting.GREEN), false);
         } else {
-            var ownerUuid = UUID.fromString(this.lockable.getOwner());
+            var ownerUuid = this.lockable.getOwner().get();
             var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
             if (!player.getUuid().equals(ownerUuid)) {
                 player.sendMessage(PrefixedText.createLiteral("Someone has already locked this container.", Formatting.RED), false);
                 LockablesMod.LOGGER.info(player.getDisplayName() + " tried to lock a container originally locked by " + owner.getDisplayName());
             } else {
                 if (!this.lockable.isActive()) {
-                    this.lockable = new LockableLock(true, this.lockable.getOwner(), toStringArray(this.lockable.getShared()));
+                    //this.lockable = new LockableLock(true, this.lockable.getOwner(), toStringArray(this.lockable.getSharedList()));
+                    this.modifyLock(true);
                     player.sendMessage(PrefixedText.createLiteral("Container locked!", Formatting.GREEN), false);
                 } else {
                     player.sendMessage(PrefixedText.createLiteral("You have already locked this container.", Formatting.YELLOW), false);
@@ -90,11 +91,12 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
         if (this.lockable.getOwner().isEmpty()) {
             player.sendMessage(PrefixedText.createLiteral("This container was never locked.", Formatting.YELLOW), false);
         } else {
-            var ownerUuid = UUID.fromString(this.lockable.getOwner());
+            var ownerUuid = this.lockable.getOwner().get();
             var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
             if (player.getUuid().equals(ownerUuid)) {
                 if (this.lockable.isActive()) {
-                    this.lockable = new LockableLock(false, this.lockable.getOwner(), toStringArray(this.lockable.getShared()));
+                    //this.lockable = new LockableLock(false, this.lockable.getOwner(), toStringArray(this.lockable.getSharedList()));
+                    this.modifyLock(false);
                     player.sendMessage(PrefixedText.createLiteral("Container unlocked!", Formatting.GREEN), false);
                 } else {
                     player.sendMessage(PrefixedText.createLiteral("This container is already unlocked.", Formatting.YELLOW), false);
@@ -109,21 +111,23 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
     @Override
     public void share(ServerPlayerEntity player, GameProfile target) {
         if (this.lockable.getOwner().isEmpty()) {
-            this.lockable = new LockableLock(false, player.getUuid().toString(), new String[] {target.getId().toString()});
+            //this.lockable = new LockableLock(false, player.getUuid().toString(), new String[] {target.getId().toString()});
+            this.modifyLock(false, player.getUuid(), new UUID[] {target.getId()});
             player.sendMessage(PrefixedText.createLiteral("This container is now shared with " + target.getName() + "!", Formatting.GREEN), false);
         } else {
-            var ownerUuid = UUID.fromString(this.lockable.getOwner());
+            var ownerUuid = this.lockable.getOwner().get();
             var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
             if (player.getUuid().equals(ownerUuid)) {
-                var current = new ArrayList<>(this.lockable.getShared());
+                var current = new ArrayList<>(this.lockable.getSharedList());
 
                 if (player.getUuid().equals(target.getId())) {
                     player.sendMessage(PrefixedText.createLiteral("You cannot share this container with yourself!", Formatting.YELLOW), false);
                 } else if (current.contains(target.getId().toString())){
                     player.sendMessage(PrefixedText.createLiteral("This container is already shared with " + target.getName() + "!", Formatting.YELLOW), false);
                 } else {
-                    current.add(target.getId().toString());
-                    this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
+                    current.add(target.getId());
+                    //this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
+                    this.modifyLock(toUuidArray(current));
                     player.sendMessage(PrefixedText.createLiteral("This container is now shared with " + target.getName() + "!", Formatting.GREEN), false);
                 }
             } else {
@@ -138,13 +142,14 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
         if (this.lockable.getOwner().isEmpty()) {
             player.sendMessage(PrefixedText.createLiteral("This container is not owned by anyone.", Formatting.YELLOW), false);
         } else {
-            var ownerUuid = UUID.fromString(this.lockable.getOwner());
+            var ownerUuid = this.lockable.getOwner().get();
             var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
             if (player.getUuid().equals(ownerUuid)) {
-                var current = new ArrayList<>(this.lockable.getShared());
+                var current = new ArrayList<>(this.lockable.getSharedList());
                 if (current.contains(target.getId().toString())) {
                     current.remove(target.getId().toString());
-                    this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
+                    //this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
+                    this.modifyLock(toUuidArray(current));
                     player.sendMessage(PrefixedText.createLiteral("This container is no longer shared with " + target.getName() + "!", Formatting.GREEN), false);
                 } else {
                     player.sendMessage(PrefixedText.createLiteral("This container is not shared with " + target.getName() + ".", Formatting.YELLOW), false);
@@ -161,6 +166,62 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
         return this.lockable;
     }
 
+    private void modifyLock(boolean active, UUID owner, UUID[] shared, String[] teams) {
+        this.lockable = LockableLock.create(active, owner, shared, teams);
+    }
+
+    private void modifyLock(boolean active, UUID owner) {
+        this.modifyLock(active, owner, this.lockable.getShared(), this.lockable.getTeams());
+    }
+
+    private void modifyLock(UUID owner, UUID[] shared, String[] teams) {
+       this.modifyLock(this.lockable.isActive(), owner, shared, teams);
+    }
+
+    private void modifyLock(UUID owner) {
+        this.modifyLock(this.lockable.isActive(), owner);
+    }
+
+    private void modifyLock(boolean active, UUID[] shared, String[] teams) {
+        this.modifyLock(active, this.lockable.getOwner().get(), shared, teams);
+    }
+
+    private void modifyLock(boolean active) {
+        this.modifyLock(active, this.lockable.getOwner().get());
+    }
+
+    private void modifyLock(boolean active, UUID owner, UUID[] shared) {
+        this.modifyLock(active, owner, shared, this.lockable.getTeams());
+    }
+
+    private void modifyLock(UUID owner, UUID[] shared) {
+        this.modifyLock(owner, shared, this.lockable.getTeams());
+    }
+
+    private void modifyLock(boolean active, UUID[] shared) {
+        this.modifyLock(active, this.lockable.getOwner().get(), shared);
+    }
+
+    private void modifyLock(UUID[] shared) {
+        this.modifyLock(this.lockable.isActive(), shared);
+    }
+
+    private void modifyLock(boolean active, UUID owner, String[] teams) {
+        this.modifyLock(active, owner, this.lockable.getShared(), teams);
+    }
+
+    private void modifyLock(UUID owner, String[] teams) {
+        this.modifyLock(owner, this.lockable.getShared(), teams);
+    }
+
+    private void modifyLock(boolean active, String[] teams) {
+        this.modifyLock(active, this.lockable.getOwner().get(), teams);
+    }
+
+    private void modifyLock(String[] teams) {
+        this.modifyLock(this.lockable.isActive(), teams);
+    }
+
     private void onLock() {
         var entity = (LootableContainerBlockEntity) (Object) this;
         var state = entity.getCachedState().get(ChestBlock.CHEST_TYPE);
@@ -173,6 +234,12 @@ public abstract class LockableContainerBlockEntityMixin implements ILockableCont
 
     private static String[] toStringArray(List<String> list) {
         var arr = new String[list.size()];
+        arr = list.toArray(arr);
+        return arr;
+    }
+
+    private static UUID[] toUuidArray(List<UUID> list) {
+        var arr = new UUID[list.size()];
         arr = list.toArray(arr);
         return arr;
     }
