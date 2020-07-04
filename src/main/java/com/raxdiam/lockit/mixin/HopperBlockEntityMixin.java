@@ -26,14 +26,14 @@ public class HopperBlockEntityMixin {
         var inBlockEntity = world.getBlockEntity(inPos);
 
         if (outBlockEntity instanceof LockableContainerBlockEntity) {
-            if (((ILockableContainerBlockEntityAccessor) outBlockEntity).getLockable().isActive()) {
+            if (((ILockableContainerBlockEntityAccessor) outBlockEntity).getLockit().isActive()) {
                 info.setReturnValue(false);
                 info.cancel();
             }
         }
 
         if (inBlockEntity instanceof LockableContainerBlockEntity) {
-            if (((ILockableContainerBlockEntityAccessor) inBlockEntity).getLockable().isActive()) {
+            if (((ILockableContainerBlockEntityAccessor) inBlockEntity).getLockit().isActive()) {
                 info.setReturnValue(false);
                 info.cancel();
             }

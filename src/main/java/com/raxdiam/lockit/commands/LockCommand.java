@@ -53,7 +53,7 @@ public class LockCommand implements ICommand<ServerCommandSource> {
         unshareLiteral.then(CommandManager.literal("player").then(CommandManager.argument("targets", GameProfileArgumentType.gameProfile()).suggests((context, builder) -> {
             var pbResult = getPlayerAndBlock(context.getSource());
             if (!pbResult.getLeft()) return Suggestions.empty();
-            var shared = pbResult.getRight().getLockable().getSharedList();
+            var shared = pbResult.getRight().getLockit().getPlayersList();
             var userCache = context.getSource().getMinecraftServer().getUserCache();
             return CommandSource.suggestMatching(shared.stream().map(uuid -> userCache.getByUuid(uuid).getName()), builder);
         }).executes(context -> run(context.getSource(), LockItAction.UNSHAREPLAYER, GameProfileArgumentType.getProfileArgument(context, "targets")))));
@@ -62,7 +62,7 @@ public class LockCommand implements ICommand<ServerCommandSource> {
             var pbResult = getPlayerAndBlock(context.getSource());
             if (!pbResult.getLeft()) return Suggestions.empty();
             var accessor = pbResult.getRight();
-            var teams = accessor.getLockable().getTeamsList();
+            var teams = accessor.getLockit().getTeamsList();
 
             var scoreboard = context.getSource().getWorld().getScoreboard();
             return CommandSource.suggestMatching(teams.stream().map(t -> scoreboard.getTeam(t).getName()), builder);

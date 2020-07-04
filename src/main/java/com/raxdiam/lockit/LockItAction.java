@@ -6,7 +6,11 @@ public enum LockItAction {
     CLAIM,
     UNCLAIM,
     SHAREPLAYER,
+    CLEARPLAYERS,
+    LISTPLAYERS,
     SHARETEAM,
+    CLEARTEAMS,
+    LISTTEAMS,
     UNSHAREPLAYER,
     UNSHARETEAM
 }

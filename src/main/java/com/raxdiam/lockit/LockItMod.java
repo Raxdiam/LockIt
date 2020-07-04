@@ -1,5 +1,6 @@
 package com.raxdiam.lockit;
 
+import com.raxdiam.lockit.commands.LockItCommand;
 import com.raxdiam.lockit.util.CommandHelper;
 import com.raxdiam.lockit.commands.LockCommand;
 import com.raxdiam.lockit.text.PrefixedText;
@@ -8,12 +9,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LockItMod implements ModInitializer {
-	public static final Logger LOGGER = LogManager.getLogger("Lockables");
+	public static final Logger LOGGER = LogManager.getLogger("LockIt");
 
 	@Override
 	public void onInitialize() {
-		PrefixedText.MOD_ID = "lockables";
-		CommandHelper.register(new LockCommand());
+		PrefixedText.MOD_ID = "lockit";
+		CommandHelper.register(new LockItCommand());
 		/*CommandHelper.register(new UnlockCommand());
 		CommandHelper.register(new ShareCommand());
 		CommandHelper.register(new UnshareCommand());*/

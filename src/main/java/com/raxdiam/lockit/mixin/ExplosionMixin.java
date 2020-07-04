@@ -70,7 +70,7 @@ public abstract class ExplosionMixin {
                             var optional = this.behavior.getBlastResistance((Explosion) (Object) this, this.world, blockPos, blockState, fluidState);
 
                             var blockEntity = this.world.getBlockEntity(blockPos);
-                            var isLocked = (blockEntity instanceof LockableContainerBlockEntity) && ((ILockableContainerBlockEntityAccessor) blockEntity).getLockable().isActive();
+                            var isLocked = (blockEntity instanceof LockableContainerBlockEntity) && ((ILockableContainerBlockEntityAccessor) blockEntity).getLockit().isActive();
 
                             if (optional.isPresent()) {
                                 h -= (optional.get() + 0.3F) * 0.3F;

@@ -28,7 +28,7 @@ public class UnshareCommand implements ICommand<ServerCommandSource> {
                     }
 
                     var accessor = (ILockableContainerBlockEntityAccessor) blockEntity;
-                    var shared = accessor.getLockable().getSharedList();
+                    var shared = accessor.getLockit().getPlayersList();
 
                     PlayerManager playerManager = ((ServerCommandSource)commandContext.getSource()).getMinecraftServer().getPlayerManager();
                     return CommandSource.suggestMatching(shared.stream().map(s -> {

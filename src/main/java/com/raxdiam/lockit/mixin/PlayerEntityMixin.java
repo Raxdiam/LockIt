@@ -16,7 +16,7 @@ public class PlayerEntityMixin {
     @Inject(method = "isBlockBreakingRestricted", at = @At("HEAD"), cancellable = true)
     public void onIsBlockBreakingRestricted(World world, BlockPos pos, GameMode gameMode, CallbackInfoReturnable<Boolean> info) {
         var blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof LockableContainerBlockEntity && ((ILockableContainerBlockEntityAccessor) blockEntity).getLockable().isActive()) {
+        if (blockEntity instanceof LockableContainerBlockEntity && ((ILockableContainerBlockEntityAccessor) blockEntity).getLockit().isActive()) {
             info.setReturnValue(true);
             info.cancel();
         }

@@ -1,16 +1,13 @@
 package com.raxdiam.lockit.mixin;
 
 import com.mojang.authlib.GameProfile;
-import com.raxdiam.lockit.LockItAction;
 import com.raxdiam.lockit.LockItLock;
 import com.raxdiam.lockit.LockItLockResult;
 import com.raxdiam.lockit.LockItMod;
 import com.raxdiam.lockit.accessor.ILockableContainerBlockEntityAccessor;
 import com.raxdiam.lockit.text.PrefixedText;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
-import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.scoreboard.Team;
@@ -18,11 +15,14 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
+import org.lwjgl.system.CallbackI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static com.raxdiam.lockit.LockItAction.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +30,16 @@ import java.util.UUID;
 
 @Mixin(value = LockableContainerBlockEntity.class)
 public class LockableContainerBlockEntityMixin implements ILockableContainerBlockEntityAccessor {
-    private LockItLock lockable = LockItLock.EMPTY;
+    private LockItLock lockit = LockItLock.EMPTY;
 
     @Inject(method = "fromTag", at = @At("TAIL"))
     public void onFromTag(BlockState state, CompoundTag tag, CallbackInfo info) {
-        this.lockable = LockItLock.fromTag(tag);
+        this.lockit = LockItLock.fromTag(tag);
     }
 
     @Inject(method = "toTag", at = @At("TAIL"))
     public void onToTag(CompoundTag tag, CallbackInfoReturnable<CompoundTag> info) {
-        this.lockable.toTag(tag);
+        this.lockit.toTag(tag);
     }
 
     @Inject(method = "checkUnlocked", at = @At("HEAD"), cancellable = true)
@@ -53,12 +53,19 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
 
     @Override
     public boolean canAccess(ServerPlayerEntity player) {
-        if (!this.lockable.getOwner().isEmpty()) {
-            var owner = this.lockable.getOwner().get();
-            if (this.lockable.isActive()) {
+        if (!this.lockit.getOwner().isEmpty()) {
+            var owner = this.lockit.getOwner().get();
+            if (this.lockit.isActive()) {
                 if (owner.equals(player.getUuid())) return true;
-                else if (this.lockable.getSharedList().contains(player.getUuid())) return true;
-                else return false;
+                else if (this.lockit.getPlayersList().contains(player.getUuid())) return true;
+                else {
+                    var playerTeam = player.getScoreboardTeam();
+                    if (playerTeam != null) {
+                        if (this.lockit.getTeamsList().contains(playerTeam.getName()))
+                            return true;
+                    }
+                    return false;
+                }
             }
         }
 
@@ -66,210 +73,306 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
     }
 
     @Override
+    public boolean isOwner(ServerPlayerEntity player) {
+        return this.hasOwner() && this.lockit.getOwner().equals(player.getUuid());
+    }
+
+    @Override
+    public boolean hasOwner() {
+        return !this.lockit.getOwner().isEmpty();
+    }
+
+    @Override
     public LockItLockResult lock(ServerPlayerEntity player) {
-        if (this.lockable.getOwner().isEmpty()) {
-            //this.lockable = new LockableLock(true, player.getUuid().toString());
+        if (!this.hasOwner()) {
             this.modifyLock(true, player.getUuid());
-            //player.sendMessage(PrefixedText.createLiteral("Container locked!", Formatting.GREEN), false);
-            return LockItLockResult.success(LockItAction.LOCK, "Container locked!");
-        } else {
-            var ownerUuid = this.lockable.getOwner().get();
-            var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
-            if (!player.getUuid().equals(ownerUuid)) {
-                //player.sendMessage(PrefixedText.createLiteral("Someone has already locked this container.", Formatting.RED), false);
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to lock a container originally locked by " + owner.getDisplayName());
-                return LockItLockResult.fail(LockItAction.LOCK, "Someone has already locked this container.");
+            return LockItLockResult.success(LOCK, "Container claimed and locked!");
+        } else if (this.isOwner(player)) {
+            if (this.lockit.isActive()) {
+                return LockItLockResult.failSoft(LOCK, "Container is already locked.");
             } else {
-                if (!this.lockable.isActive()) {
-                    //this.lockable = new LockableLock(true, this.lockable.getOwner(), toStringArray(this.lockable.getSharedList()));
+                this.modifyLock(true);
+                return LockItLockResult.success(LOCK, "Container locked!");
+            }
+        } else {
+            return LockItLockResult.fail(LOCK, LockMessage.NOT_OWNER.get());
+        }
+
+        /*if (this.lockit.getOwner().isEmpty()) {
+            this.modifyLock(true, player.getUuid());
+            return LockItLockResult.success(LOCK, "Container locked!");
+        } else {
+            if (!player.getUuid().equals(this.lockit.getOwner().get())) {
+                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
+                LockItMod.LOGGER.info(player.getDisplayName() + " tried to lock a container originally locked by " + ownerName);
+                return LockItLockResult.fail(LOCK, LockMessage.NOT_OWNER.get());
+            } else {
+                if (!this.lockit.isActive()) {
                     this.modifyLock(true);
-                    //player.sendMessage(PrefixedText.createLiteral("Container locked!", Formatting.GREEN), false);
-                    return LockItLockResult.success(LockItAction.LOCK, "Container locked!");
+                    return LockItLockResult.success(LOCK, "Container locked!");
                 } else {
-                    //player.sendMessage(PrefixedText.createLiteral("You have already locked this container.", Formatting.YELLOW), false);
-                    return LockItLockResult.failSoft(LockItAction.LOCK, "You have already locked this container.");
+                    return LockItLockResult.failSoft(LOCK, "You have already locked this container.");
                 }
             }
-        }
+        }*/
     }
 
     @Override
     public LockItLockResult unlock(ServerPlayerEntity player) {
-        if (this.lockable.getOwner().isEmpty()) {
-            //player.sendMessage(PrefixedText.createLiteral("This container was never locked.", Formatting.YELLOW), false);
-            return LockItLockResult.failSoft(LockItAction.UNLOCK, "This container was never locked.");
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(UNLOCK, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            if (this.lockit.isActive()) {
+                this.modifyLock(false);
+                return LockItLockResult.success(UNLOCK, "Container unlocked!");
+            } else {
+                return LockItLockResult.failSoft(UNLOCK, "Container is already unlocked.");
+            }
         } else {
-            var ownerUuid = this.lockable.getOwner().get();
-            var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
-            if (player.getUuid().equals(ownerUuid)) {
-                if (this.lockable.isActive()) {
-                    //this.lockable = new LockableLock(false, this.lockable.getOwner(), toStringArray(this.lockable.getSharedList()));
+            return LockItLockResult.fail(UNLOCK, LockMessage.NOT_OWNER.get());
+        }
+        /*if (this.lockit.getOwner().isEmpty()) {
+            return LockItLockResult.failSoft(UNLOCK, LockMessage.NO_OWNER.get());
+        } else {
+            if (player.getUuid().equals(this.lockit.getOwner().get())) {
+                if (this.lockit.isActive()) {
                     this.modifyLock(false);
-                    //player.sendMessage(PrefixedText.createLiteral("Container unlocked!", Formatting.GREEN), false);
-                    return LockItLockResult.success(LockItAction.UNLOCK, "Container unlocked!");
+                    return LockItLockResult.success(UNLOCK, "Container unlocked!");
                 } else {
-                    //player.sendMessage(PrefixedText.createLiteral("This container is already unlocked.", Formatting.YELLOW), false);
-                    return LockItLockResult.failSoft(LockItAction.UNLOCK, "This container is already unlocked.");
+                    return LockItLockResult.failSoft(UNLOCK, "This container is already unlocked.");
                 }
             } else {
-                //player.sendMessage(PrefixedText.createLiteral("You cannot unlock a container that isn't yours.", Formatting.RED), false);
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to unlock a container owned by " + owner.getDisplayName());
-                return LockItLockResult.fail(LockItAction.UNLOCK, "You cannot unlock a container that isn't yours.");
+                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
+                LockItMod.LOGGER.info(player.getDisplayName() + " tried to unlock a container owned by " + ownerName);
+                return LockItLockResult.fail(UNLOCK, LockMessage.NOT_OWNER.get());
             }
-        }
+        }*/
     }
 
     @Override
     public LockItLockResult claim(ServerPlayerEntity player) {
-        return LockItLockResult.fail(LockItAction.CLAIM, "Method not yet implemented");
+        if (!this.hasOwner()) {
+            this.modifyLock(player.getUuid());
+            return LockItLockResult.success(CLAIM, "Container claimed!");
+        } else if (this.isOwner(player)) {
+            return LockItLockResult.failSoft(CLAIM, "You already own this container.");
+        } else {
+            return LockItLockResult.fail(CLAIM, "This container has already been claimed by someone else.");
+        }
     }
 
     @Override
     public LockItLockResult unclaim(ServerPlayerEntity player) {
-        return LockItLockResult.fail(LockItAction.UNCLAIM, "Method not yet implemented");
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(UNCLAIM, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            this.lockit = LockItLock.EMPTY;
+            return LockItLockResult.success(UNCLAIM, "Ownership of this container removed!");
+        } else {
+            return LockItLockResult.fail(UNCLAIM, LockMessage.NOT_OWNER.get());
+        }
     }
 
     @Override
     public LockItLockResult share(ServerPlayerEntity player, GameProfile target) {
-        if (this.lockable.getOwner().isEmpty()) {
-            //this.lockable = new LockableLock(false, player.getUuid().toString(), new String[] {target.getId().toString()});
-            this.modifyLock(false, player.getUuid(), new UUID[] {target.getId()});
-            //player.sendMessage(PrefixedText.createLiteral("This container is now shared with " + target.getName() + "!", Formatting.GREEN), false);
-            return LockItLockResult.success(LockItAction.SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
+        if (!this.hasOwner()) {
+            this.modifyLock(player.getUuid(), new UUID[] {target.getId()});
+            return LockItLockResult.success(SHAREPLAYER, "Container claimed and shared with " + target.getName() + "!");
+        } else if (this.isOwner(player)) {
+            var current = new ArrayList<>(this.lockit.getPlayersList());
+            if (player.getUuid().equals(target.getId())) {
+                return LockItLockResult.failSoft(SHAREPLAYER, "You cannot share a container you own with yourself.");
+            } else if (current.contains(target.getId())) {
+                return LockItLockResult.failSoft(SHAREPLAYER, "This container is already shared with " + target.getName() + ".");
+            } else {
+                current.add(target.getId());
+                this.modifyLock(toUuidArray(current));
+                return LockItLockResult.success(SHAREPLAYER, "Container shared with " + target.getName() + "!");
+            }
         } else {
-            var ownerUuid = this.lockable.getOwner().get();
-            var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
-            if (player.getUuid().equals(ownerUuid)) {
-                var current = new ArrayList<>(this.lockable.getSharedList());
+            return LockItLockResult.fail(SHAREPLAYER, LockMessage.NOT_OWNER.get());
+        }
+
+        /*if (this.lockit.getOwner().isEmpty()) {
+            this.modifyLock(false, player.getUuid(), new UUID[] {target.getId()});
+            return LockItLockResult.success(SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
+        } else {
+            if (player.getUuid().equals(this.lockit.getOwner().get())) {
+                var current = new ArrayList<>(this.lockit.getPlayersList());
 
                 if (player.getUuid().equals(target.getId())) {
-                    //player.sendMessage(PrefixedText.createLiteral("You cannot share this container with yourself!", Formatting.YELLOW), false);
-                    return LockItLockResult.failSoft(LockItAction.SHAREPLAYER, "You cannot share this container with yourself!");
+                    return LockItLockResult.failSoft(SHAREPLAYER, "You cannot share this container with yourself.");
                 } else if (current.contains(target.getId())){
-                    //player.sendMessage(PrefixedText.createLiteral("This container is already shared with " + target.getName() + "!", Formatting.YELLOW), false);
-                    return LockItLockResult.failSoft(LockItAction.SHAREPLAYER, "This container is already shared with " + target.getName() + "!");
+                    return LockItLockResult.failSoft(SHAREPLAYER, "This container is already shared with " + target.getName() + ".");
                 } else {
                     current.add(target.getId());
-                    //this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
                     this.modifyLock(toUuidArray(current));
-                    //player.sendMessage(PrefixedText.createLiteral("This container is now shared with " + target.getName() + "!", Formatting.GREEN), false);
-                    return LockItLockResult.success(LockItAction.SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
+                    return LockItLockResult.success(SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
                 }
             } else {
-                //player.sendMessage(PrefixedText.createLiteral("You cannot share a container you do not own.", Formatting.RED), false);
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to share a chest owned by " + owner.getDisplayName());
-                return LockItLockResult.fail(LockItAction.SHAREPLAYER, "You cannot share a container you do not own.");
+                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
+                LockItMod.LOGGER.info(player.getDisplayName() + " tried to share a chest owned by " + ownerName);
+                return LockItLockResult.fail(SHAREPLAYER, LockMessage.NOT_OWNER.get());
             }
-        }
+        }*/
     }
 
     @Override
     public LockItLockResult share(ServerPlayerEntity player, Team team) {
-        return LockItLockResult.fail(LockItAction.SHARETEAM, "Method not yet implemented");
-    }
-
-    @Override
-    public LockItLockResult unshare(ServerPlayerEntity player, GameProfile target) {
-        if (this.lockable.getOwner().isEmpty()) {
-            //player.sendMessage(PrefixedText.createLiteral("This container is not owned by anyone.", Formatting.YELLOW), false);
-            return LockItLockResult.failSoft(LockItAction.UNSHAREPLAYER, "This container is not owned by anyone.");
-        } else {
-            var ownerUuid = this.lockable.getOwner().get();
-            var owner = player.getServerWorld().getServer().getPlayerManager().getPlayer(ownerUuid);
-            if (player.getUuid().equals(ownerUuid)) {
-                var current = new ArrayList<>(this.lockable.getSharedList());
-                if (current.contains(target.getId())) {
-                    current.remove(target.getId());
-                    //this.lockable = new LockableLock(this.lockable.isActive(), this.lockable.getOwner(), toStringArray(current));
-                    this.modifyLock(toUuidArray(current));
-                    //player.sendMessage(PrefixedText.createLiteral("This container is no longer shared with " + target.getName() + "!", Formatting.GREEN), false);
-                    return LockItLockResult.success(LockItAction.UNSHAREPLAYER, "This container is no longer shared with " + target.getName() + "!");
-                } else {
-                    //player.sendMessage(PrefixedText.createLiteral("This container is not shared with " + target.getName() + ".", Formatting.YELLOW), false);
-                    return LockItLockResult.failSoft(LockItAction.UNSHAREPLAYER, "This container is not shared with " + target.getName() + ".");
-                }
+        if (!hasOwner()) {
+            return LockItLockResult.failSoft(SHARETEAM, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            var current = new ArrayList<>(this.lockit.getTeamsList());
+            if (current.contains(team.getName())) {
+                return LockItLockResult.failSoft(SHARETEAM, "This container is already shared with team " + team.getName() + ".");
             } else {
-                //player.sendMessage(PrefixedText.createLiteral("You cannot un-share a container you do not own.", Formatting.RED), false);
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to un-share a chest owned by " + owner.getDisplayName());
-                return LockItLockResult.fail(LockItAction.UNSHAREPLAYER, "You cannot un-share a container you do not own.");
+                current.add(team.getName());
+                this.modifyLock(toStringArray(current));
+                return LockItLockResult.success(SHARETEAM, "This container is now shared with team " + team.getName() + "!");
             }
+        } else {
+            return LockItLockResult.fail(SHARETEAM, LockMessage.NOT_OWNER.get());
         }
     }
 
     @Override
-    public LockItLockResult unshare(ServerPlayerEntity player, Team team) {
-        return LockItLockResult.fail(LockItAction.UNSHARETEAM, "Method not yet implemented");
+    public LockItLockResult unshare(ServerPlayerEntity player, GameProfile target) {
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(UNSHAREPLAYER, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            var current = new ArrayList<>(this.lockit.getPlayersList());
+            if (current.contains(target.getId())) {
+                current.remove(target.getId());
+                this.modifyLock(toUuidArray(current));
+                return LockItLockResult.success(UNSHAREPLAYER, "Container no loncger shared with " + target.getName() + "!");
+            } else {
+                return LockItLockResult.failSoft(UNSHAREPLAYER, "This container is not shared with " + target.getName() + ".");
+            }
+        } else {
+            return LockItLockResult.fail(UNSHAREPLAYER, LockMessage.NOT_OWNER.get());
+        }
+
+        /*if (this.lockit.getOwner().isEmpty()) {
+            return LockItLockResult.failSoft(UNSHAREPLAYER, LockMessage.NO_OWNER.get());
+        } else {
+            if (player.getUuid().equals(this.lockit.getOwner().get())) {
+                var current = new ArrayList<>(this.lockit.getPlayersList());
+                if (current.contains(target.getId())) {
+                    current.remove(target.getId());
+                    this.modifyLock(toUuidArray(current));
+                    return LockItLockResult.success(UNSHAREPLAYER, "This container is no longer shared with " + target.getName() + "!");
+                } else {
+                    return LockItLockResult.failSoft(UNSHAREPLAYER, "This container is not shared with " + target.getName() + ".");
+                }
+            } else {
+                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
+                LockItMod.LOGGER.info(player.getDisplayName() + " tried to un-share a chest owned by " + ownerName);
+                return LockItLockResult.fail(UNSHAREPLAYER, LockMessage.NOT_OWNER.get());
+            }
+        }*/
     }
 
     @Override
-    public LockItLock getLockable() {
-        return this.lockable;
+    public LockItLockResult unshare(ServerPlayerEntity player, Team team) {
+        if (!hasOwner()) {
+            return LockItLockResult.failSoft(SHARETEAM, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            var current = new ArrayList<>(this.lockit.getTeamsList());
+            if (current.contains(team.getName())) {
+                current.remove(team.getName());
+                this.modifyLock(toStringArray(current));
+                return LockItLockResult.success(SHARETEAM, "This container is no longer shared with team " + team.getName() + "!");
+            } else {
+                return LockItLockResult.failSoft(SHARETEAM, "This container is not shared with team " + team.getName() + ".");
+            }
+        } else {
+            return LockItLockResult.fail(SHARETEAM, LockMessage.NOT_OWNER.get());
+        }
     }
 
-    private void modifyLock(boolean active, UUID owner, UUID[] shared, String[] teams) {
-        this.lockable = LockItLock.create(active, owner, shared, teams);
+    @Override
+    public LockItLockResult clearPlayers(ServerPlayerEntity player) {
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(CLEARPLAYERS, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            this.modifyLock(new UUID[]{});
+            return LockItLockResult.success(CLEARPLAYERS, "All shared-with players cleared from this container.");
+        } else {
+            return LockItLockResult.fail(CLEARPLAYERS, LockMessage.NOT_OWNER.get());
+        }
+    }
+
+    @Override
+    public LockItLockResult clearTeams(ServerPlayerEntity player) {
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(CLEARTEAMS, LockMessage.NO_OWNER.get());
+        } else if (this.isOwner(player)) {
+            this.modifyLock(new String[] {});
+            return LockItLockResult.success(CLEARTEAMS, "All shared-with teams cleared from this container.");
+        } else {
+            return LockItLockResult.fail(CLEARTEAMS, LockMessage.NOT_OWNER.get());
+        }
+    }
+
+    @Override
+    public LockItLock getLockit() {
+        return this.lockit;
+    }
+
+    private void modifyLock(boolean active, UUID owner, UUID[] players, String[] teams) {
+        this.lockit = LockItLock.create(active, owner, players, teams);
     }
 
     private void modifyLock(boolean active, UUID owner) {
-        this.modifyLock(active, owner, this.lockable.getPlayers(), this.lockable.getTeams());
+        this.modifyLock(active, owner, this.lockit.getPlayers(), this.lockit.getTeams());
     }
 
-    private void modifyLock(UUID owner, UUID[] shared, String[] teams) {
-       this.modifyLock(this.lockable.isActive(), owner, shared, teams);
+    private void modifyLock(UUID owner, UUID[] players, String[] teams) {
+       this.modifyLock(this.lockit.isActive(), owner, players, teams);
     }
 
     private void modifyLock(UUID owner) {
-        this.modifyLock(this.lockable.isActive(), owner);
+        this.modifyLock(this.lockit.isActive(), owner);
     }
 
-    private void modifyLock(boolean active, UUID[] shared, String[] teams) {
-        this.modifyLock(active, this.lockable.getOwner().get(), shared, teams);
+    private void modifyLock(boolean active, UUID[] players, String[] teams) {
+        this.modifyLock(active, this.lockit.getOwner().get(), players, teams);
     }
 
     private void modifyLock(boolean active) {
-        this.modifyLock(active, this.lockable.getOwner().get());
+        this.modifyLock(active, this.lockit.getOwner().get());
     }
 
-    private void modifyLock(boolean active, UUID owner, UUID[] shared) {
-        this.modifyLock(active, owner, shared, this.lockable.getTeams());
+    private void modifyLock(boolean active, UUID owner, UUID[] players) {
+        this.modifyLock(active, owner, players, this.lockit.getTeams());
     }
 
-    private void modifyLock(UUID owner, UUID[] shared) {
-        this.modifyLock(owner, shared, this.lockable.getTeams());
+    private void modifyLock(UUID owner, UUID[] players) {
+        this.modifyLock(owner, players, this.lockit.getTeams());
     }
 
-    private void modifyLock(boolean active, UUID[] shared) {
-        this.modifyLock(active, this.lockable.getOwner().get(), shared);
+    private void modifyLock(boolean active, UUID[] players) {
+        this.modifyLock(active, this.lockit.getOwner().get(), players);
     }
 
-    private void modifyLock(UUID[] shared) {
-        this.modifyLock(this.lockable.isActive(), shared);
+    private void modifyLock(UUID[] players) {
+        this.modifyLock(this.lockit.isActive(), players);
     }
 
     private void modifyLock(boolean active, UUID owner, String[] teams) {
-        this.modifyLock(active, owner, this.lockable.getPlayers(), teams);
+        this.modifyLock(active, owner, this.lockit.getPlayers(), teams);
     }
 
     private void modifyLock(UUID owner, String[] teams) {
-        this.modifyLock(owner, this.lockable.getPlayers(), teams);
+        this.modifyLock(owner, this.lockit.getPlayers(), teams);
     }
 
     private void modifyLock(boolean active, String[] teams) {
-        this.modifyLock(active, this.lockable.getOwner().get(), teams);
+        this.modifyLock(active, this.lockit.getOwner().get(), teams);
     }
 
     private void modifyLock(String[] teams) {
-        this.modifyLock(this.lockable.isActive(), teams);
-    }
-
-    private void onLock() {
-        var entity = (LootableContainerBlockEntity) (Object) this;
-        var state = entity.getCachedState().get(ChestBlock.CHEST_TYPE);
-
-    }
-
-    private void onUnlock() {
-        
+        this.modifyLock(this.lockit.isActive(), teams);
     }
 
     private static String[] toStringArray(List<String> list) {
@@ -282,5 +385,20 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         var arr = new UUID[list.size()];
         arr = list.toArray(arr);
         return arr;
+    }
+
+    private enum LockMessage {
+        NOT_OWNER("You do not own this container."),
+        NO_OWNER("This container has no owner.");
+
+        private String message;
+
+        LockMessage(String message) {
+            this.message = message;
+        }
+
+        public String get() {
+            return this.message;
+        }
     }
 }

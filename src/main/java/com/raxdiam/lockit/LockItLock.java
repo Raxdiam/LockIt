@@ -39,7 +39,7 @@ public class LockItLock {
         return this.teams;
     }
 
-    public List<UUID> getSharedList() {
+    public List<UUID> getPlayersList() {
         return Arrays.asList(this.players);
     }
 
