@@ -7,7 +7,7 @@ Allows containers to be locked, unlocked, and shared using commands.
 - Locking a container block will prevent it from breaking
 - Sharing a container block will allow players that it is shared with, to access the container's inventory
 - Players with shared access will NOT be able to lock or unlock the container
-- Claiming/un-claiming a container block with assign/remove ownership of the lock to/from the calling player
+- Claiming/un-claiming a container block will assign/remove ownership of the lock to/from the calling player
 
 ### Commands
 - `/li lock` - Lock the targeted container block
