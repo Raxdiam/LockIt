@@ -14,14 +14,14 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/li unlock`- Unlock the targeted container block
 - `/li share player add <player>`- Add a specified player to the shared-with players for the targeted container block
 - `/li share player remove <player>` - Remove a specified player from the shared-with players for the targeted container block
-- `/li share player clear` (to-do) - Clear all shared-with players from the targeted container block
-- `/li share player list` (to-do) - List all shared-with players for the targeted container block
-- `/li share team add <team>` (to-do) - Add a specified team to the shared-with teams for the targeted container block
-- `/li share team remove <team>` (to-do) - Remove a specified team from the shared-with teams for the targeted container block
-- `/li share team clear` (to-do) - Clear all shared-with teams from the targeted container block
-- `/li share team list` (to-do) - List all shared-with teams for the targeted container block
-- `/li claim` (to-do) - Claim the targeted container block
-- `/li unclaim` (to-do) - Un-claim the targeted container block
+- `/li share player clear` - Clear all shared-with players from the targeted container block
+- `/li share player list` - List all shared-with players for the targeted container block
+- `/li share team add <team>` - Add a specified team to the shared-with teams for the targeted container block
+- `/li share team remove <team>` - Remove a specified team from the shared-with teams for the targeted container block
+- `/li share team clear` - Clear all shared-with teams from the targeted container block
+- `/li share team list` - List all shared-with teams for the targeted container block
+- `/li claim` - Claim the targeted container block
+- `/li unclaim` - Un-claim the targeted container block
 
 ### To-Do
 - [x] Lock container block
