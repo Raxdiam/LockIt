@@ -8,7 +8,7 @@ import net.minecraft.nbt.StringTag;
 import java.util.*;
 
 public class LockItLock {
-    public static final String KEY = "lockables";
+    public static final String KEY = "lockit";
     public static final LockItLock EMPTY = new LockItLock(false, Optional.empty(), new UUID[] {}, new String[] {});
 
     private final boolean active;

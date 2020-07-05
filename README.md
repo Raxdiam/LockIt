@@ -22,19 +22,6 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/li share team list` - List all shared-with teams for the targeted container block
 - `/li claim` - Claim the targeted container block
 - `/li unclaim` - Un-claim the targeted container block
-
-### To-Do
-- [x] Lock container block
-- [x] Unlock container block
-- [x] Share container block with another player
-- [x] Un-share container block from a shared-with player
-- [x] Prevent hoppers from pulling/inserting items into/from a locked container
-- [x] List a container block's shared-with players
-- [x] Clear a container block's shared-with players
-- [x] Share container block with teams
-- [x] Un-share container block from a shared-with team
-- [x] List a container block's shared-with teams
-- [x] Clear a container block's shared-with teams
+#
 <br/>
-<br/>
-<sub>Special thanks to my good friend `MrVelocity` for providing a name for this project.</sub>
+<sub><sup>Thanks to my good friend MrVelocity for providing a name for this project.</sup></sub>
