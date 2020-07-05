@@ -22,4 +22,19 @@ public interface ILockableContainerBlockEntityAccessor {
     LockItLockResult clearPlayers(ServerPlayerEntity player);
     LockItLockResult clearTeams(ServerPlayerEntity player);
     LockItLock getLockit();
+
+    enum LockMessage {
+        NOT_OWNER("You do not own this container."),
+        NO_OWNER("This container has no owner.");
+
+        private String message;
+
+        LockMessage(String message) {
+            this.message = message;
+        }
+
+        public String get() {
+            return this.message;
+        }
+    }
 }

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import static net.minecraft.server.command.CommandManager.*;
 import static com.raxdiam.lockit.LockItAction.*;
+import static net.minecraft.server.command.CommandSource.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +55,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
 
         sharePlayerLiteral.then(literal("add").then(argument("targets", GameProfileArgumentType.gameProfile()).suggests((context, builder) -> {
             var playerManager = context.getSource().getMinecraftServer().getPlayerManager();
-            return CommandSource.suggestMatching(playerManager.getPlayerList().stream().map((serverPlayerEntity) -> serverPlayerEntity.getGameProfile().getName()), builder);
+            return suggestMatching(playerManager.getPlayerList().stream().map((serverPlayerEntity) -> serverPlayerEntity.getGameProfile().getName()), builder);
         }).executes(context -> run(context.getSource(), SHAREPLAYER, GameProfileArgumentType.getProfileArgument(context, "targets")))));
 
         sharePlayerLiteral.then(literal("remove").then(argument("targets", GameProfileArgumentType.gameProfile()).suggests((context, builder) -> {
@@ -62,7 +63,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
             if (!pbResult.getLeft()) return Suggestions.empty();
             var shared = pbResult.getRight().getLockit().getPlayersList();
             var userCache = context.getSource().getMinecraftServer().getUserCache();
-            return CommandSource.suggestMatching(shared.stream().map(uuid -> userCache.getByUuid(uuid).getName()), builder);
+            return suggestMatching(shared.stream().map(uuid -> userCache.getByUuid(uuid).getName()), builder);
         }).executes(context -> run(context.getSource(), UNSHAREPLAYER, GameProfileArgumentType.getProfileArgument(context, "targets")))));
 
         sharePlayerLiteral.then(literal("clear").executes(context -> run(context.getSource(), CLEARPLAYERS, null)));
@@ -70,7 +71,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
 
         shareTeamLiteral.then(literal("add").then(argument("teamName", TeamArgumentType.team()).suggests((context, builder) -> {
             var scoreboard = context.getSource().getWorld().getScoreboard();
-            return CommandSource.suggestMatching(scoreboard.getTeams().stream().map(team -> team.getName()), builder);
+            return suggestMatching(scoreboard.getTeams().stream().map(team -> team.getName()), builder);
         }).executes(context -> run(context.getSource(), SHARETEAM, TeamArgumentType.getTeam(context, "teamName")))));
 
         shareTeamLiteral.then(literal("remove").then(argument("teamName", TeamArgumentType.team()).suggests((context, builder) -> {
@@ -80,7 +81,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
             var teams = accessor.getLockit().getTeamsList();
 
             var scoreboard = context.getSource().getWorld().getScoreboard();
-            return CommandSource.suggestMatching(teams.stream().map(t -> scoreboard.getTeam(t).getName()), builder);
+            return suggestMatching(teams.stream().map(t -> scoreboard.getTeam(t).getName()), builder);
         }).executes(context -> run(context.getSource(), UNSHARETEAM, TeamArgumentType.getTeam(context, "teamName")))));
 
         shareTeamLiteral.then(literal("clear").executes(context -> run(context.getSource(), CLEARTEAMS, null)));

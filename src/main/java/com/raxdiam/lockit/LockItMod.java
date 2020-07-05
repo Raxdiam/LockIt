@@ -2,7 +2,6 @@ package com.raxdiam.lockit;
 
 import com.raxdiam.lockit.commands.LockItCommand;
 import com.raxdiam.lockit.util.CommandHelper;
-import com.raxdiam.lockit.commands.LockCommand;
 import com.raxdiam.lockit.text.PrefixedText;
 import net.fabricmc.api.ModInitializer;
 import org.apache.logging.log4j.LogManager;
@@ -15,8 +14,5 @@ public class LockItMod implements ModInitializer {
 	public void onInitialize() {
 		PrefixedText.MOD_ID = "lockit";
 		CommandHelper.register(new LockItCommand());
-		/*CommandHelper.register(new UnlockCommand());
-		CommandHelper.register(new ShareCommand());
-		CommandHelper.register(new UnshareCommand());*/
 	}
 }

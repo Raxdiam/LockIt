@@ -3,7 +3,6 @@ package com.raxdiam.lockit.mixin;
 import com.mojang.authlib.GameProfile;
 import com.raxdiam.lockit.LockItLock;
 import com.raxdiam.lockit.LockItLockResult;
-import com.raxdiam.lockit.LockItMod;
 import com.raxdiam.lockit.accessor.ILockableContainerBlockEntityAccessor;
 import com.raxdiam.lockit.text.PrefixedText;
 import net.minecraft.block.BlockState;
@@ -15,7 +14,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Formatting;
-import org.lwjgl.system.CallbackI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -74,7 +72,7 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
 
     @Override
     public boolean isOwner(ServerPlayerEntity player) {
-        return this.hasOwner() && this.lockit.getOwner().equals(player.getUuid());
+        return this.hasOwner() && this.lockit.getOwner().get().equals(player.getUuid());
     }
 
     @Override
@@ -97,24 +95,6 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         } else {
             return LockItLockResult.fail(LOCK, LockMessage.NOT_OWNER.get());
         }
-
-        /*if (this.lockit.getOwner().isEmpty()) {
-            this.modifyLock(true, player.getUuid());
-            return LockItLockResult.success(LOCK, "Container locked!");
-        } else {
-            if (!player.getUuid().equals(this.lockit.getOwner().get())) {
-                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to lock a container originally locked by " + ownerName);
-                return LockItLockResult.fail(LOCK, LockMessage.NOT_OWNER.get());
-            } else {
-                if (!this.lockit.isActive()) {
-                    this.modifyLock(true);
-                    return LockItLockResult.success(LOCK, "Container locked!");
-                } else {
-                    return LockItLockResult.failSoft(LOCK, "You have already locked this container.");
-                }
-            }
-        }*/
     }
 
     @Override
@@ -131,22 +111,6 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         } else {
             return LockItLockResult.fail(UNLOCK, LockMessage.NOT_OWNER.get());
         }
-        /*if (this.lockit.getOwner().isEmpty()) {
-            return LockItLockResult.failSoft(UNLOCK, LockMessage.NO_OWNER.get());
-        } else {
-            if (player.getUuid().equals(this.lockit.getOwner().get())) {
-                if (this.lockit.isActive()) {
-                    this.modifyLock(false);
-                    return LockItLockResult.success(UNLOCK, "Container unlocked!");
-                } else {
-                    return LockItLockResult.failSoft(UNLOCK, "This container is already unlocked.");
-                }
-            } else {
-                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to unlock a container owned by " + ownerName);
-                return LockItLockResult.fail(UNLOCK, LockMessage.NOT_OWNER.get());
-            }
-        }*/
     }
 
     @Override
@@ -192,34 +156,11 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         } else {
             return LockItLockResult.fail(SHAREPLAYER, LockMessage.NOT_OWNER.get());
         }
-
-        /*if (this.lockit.getOwner().isEmpty()) {
-            this.modifyLock(false, player.getUuid(), new UUID[] {target.getId()});
-            return LockItLockResult.success(SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
-        } else {
-            if (player.getUuid().equals(this.lockit.getOwner().get())) {
-                var current = new ArrayList<>(this.lockit.getPlayersList());
-
-                if (player.getUuid().equals(target.getId())) {
-                    return LockItLockResult.failSoft(SHAREPLAYER, "You cannot share this container with yourself.");
-                } else if (current.contains(target.getId())){
-                    return LockItLockResult.failSoft(SHAREPLAYER, "This container is already shared with " + target.getName() + ".");
-                } else {
-                    current.add(target.getId());
-                    this.modifyLock(toUuidArray(current));
-                    return LockItLockResult.success(SHAREPLAYER, "This container is now shared with " + target.getName() + "!");
-                }
-            } else {
-                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to share a chest owned by " + ownerName);
-                return LockItLockResult.fail(SHAREPLAYER, LockMessage.NOT_OWNER.get());
-            }
-        }*/
     }
 
     @Override
     public LockItLockResult share(ServerPlayerEntity player, Team team) {
-        if (!hasOwner()) {
+        if (!this.hasOwner()) {
             return LockItLockResult.failSoft(SHARETEAM, LockMessage.NO_OWNER.get());
         } else if (this.isOwner(player)) {
             var current = new ArrayList<>(this.lockit.getTeamsList());
@@ -251,30 +192,11 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         } else {
             return LockItLockResult.fail(UNSHAREPLAYER, LockMessage.NOT_OWNER.get());
         }
-
-        /*if (this.lockit.getOwner().isEmpty()) {
-            return LockItLockResult.failSoft(UNSHAREPLAYER, LockMessage.NO_OWNER.get());
-        } else {
-            if (player.getUuid().equals(this.lockit.getOwner().get())) {
-                var current = new ArrayList<>(this.lockit.getPlayersList());
-                if (current.contains(target.getId())) {
-                    current.remove(target.getId());
-                    this.modifyLock(toUuidArray(current));
-                    return LockItLockResult.success(UNSHAREPLAYER, "This container is no longer shared with " + target.getName() + "!");
-                } else {
-                    return LockItLockResult.failSoft(UNSHAREPLAYER, "This container is not shared with " + target.getName() + ".");
-                }
-            } else {
-                var ownerName = player.getServerWorld().getServer().getUserCache().getByUuid(this.lockit.getOwner().get()).getName();
-                LockItMod.LOGGER.info(player.getDisplayName() + " tried to un-share a chest owned by " + ownerName);
-                return LockItLockResult.fail(UNSHAREPLAYER, LockMessage.NOT_OWNER.get());
-            }
-        }*/
     }
 
     @Override
     public LockItLockResult unshare(ServerPlayerEntity player, Team team) {
-        if (!hasOwner()) {
+        if (!this.hasOwner()) {
             return LockItLockResult.failSoft(SHARETEAM, LockMessage.NO_OWNER.get());
         } else if (this.isOwner(player)) {
             var current = new ArrayList<>(this.lockit.getTeamsList());
@@ -385,20 +307,5 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
         var arr = new UUID[list.size()];
         arr = list.toArray(arr);
         return arr;
-    }
-
-    private enum LockMessage {
-        NOT_OWNER("You do not own this container."),
-        NO_OWNER("This container has no owner.");
-
-        private String message;
-
-        LockMessage(String message) {
-            this.message = message;
-        }
-
-        public String get() {
-            return this.message;
-        }
     }
 }

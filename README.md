@@ -35,3 +35,6 @@ Allows containers to be locked, unlocked, and shared using commands.
 - [x] Un-share container block from a shared-with team
 - [x] List a container block's shared-with teams
 - [x] Clear a container block's shared-with teams
+<br/>
+<br/>
+<sub>Special thanks to my good friend `MrVelocity` for providing a name for this project.</sub>
