@@ -150,7 +150,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
                 txtList = txtList.substring(0, txtList.length() - 1);
 
                 var msg = TextBuilder.literal("[", Formatting.GRAY)
-                        .append(TextBuilder.literal(LockItMod.LOGGER.getName(), Formatting.GREEN)
+                        .append(TextBuilder.literal(LockItMod.LOGGER.getName(), Formatting.GOLD)
                                 .append(TextBuilder.literal("]", Formatting.GRAY)
                                         .append(TextBuilder.literal(" Shared-with Players:\n", Formatting.WHITE)
                                                 .append(TextBuilder.literal(txtList))))).build();
@@ -175,7 +175,7 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
                 txtList = txtList.substring(0, txtList.length() - 1);
 
                 var msg = TextBuilder.literal("[", Formatting.GRAY)
-                        .append(TextBuilder.literal(LockItMod.LOGGER.getName(), Formatting.GREEN)
+                        .append(TextBuilder.literal(LockItMod.LOGGER.getName(), Formatting.GOLD)
                                 .append(TextBuilder.literal("]", Formatting.GRAY)
                                         .append(TextBuilder.literal(" Shared-with Teams:\n", Formatting.WHITE)
                                                 .append(TextBuilder.literal(txtList))))).build();
