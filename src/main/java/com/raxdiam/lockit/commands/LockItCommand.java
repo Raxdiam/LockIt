@@ -18,6 +18,8 @@ import net.minecraft.command.arguments.TeamArgumentType;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.TimeCommand;
+import net.minecraft.server.dedicated.command.BanCommand;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
@@ -30,6 +32,7 @@ import static net.minecraft.server.command.CommandSource.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LockItCommand implements ICommand<ServerCommandSource> {
 
@@ -48,6 +51,10 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
         subLiterals.add(literal("unlock").executes(context -> run(context.getSource(), UNLOCK, null)));
         subLiterals.add(literal("claim").executes(context -> run(context.getSource(), CLAIM, null)));
         subLiterals.add(literal("unclaim").executes(context -> run(context.getSource(), UNCLAIM, null)));
+
+        /*var uninstallLiteral = literal("uninstall");
+        uninstallLiteral.then()*/
+        subLiterals.add(literal("uninstall").requires(source -> source.hasPermissionLevel(4)).then(literal("confirm").executes(context -> performUninstall(context.getSource()))));
 
         var shareLiteral = literal("share");
         var sharePlayerLiteral = literal("player");
@@ -195,6 +202,19 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
 
         source.sendFeedback(result.getMessage(), false);
         return 0;
+    }
+
+    private static int performUninstall(ServerCommandSource source) {
+        var world = source.getWorld();
+        var lockableBlockEntities = world.blockEntities.stream().filter(blockEntity -> blockEntity instanceof LockableContainerBlockEntity);
+        for (var blockEntity : lockableBlockEntities.collect(Collectors.toList())) {
+            var accessor = (ILockableContainerBlockEntityAccessor) blockEntity;
+            if (accessor.hasOwner()) {
+                accessor.unclaim();
+            }
+        }
+        source.sendFeedback(PrefixedText.createLiteral("All containers unclaimed. It is now safe to remove LockIt.", Formatting.GREEN), false);
+        return 1;
     }
 
     private static Triple<Boolean, ServerPlayerEntity, ILockableContainerBlockEntityAccessor> getPlayerAndBlock(ServerCommandSource source) {

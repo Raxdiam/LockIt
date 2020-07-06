@@ -15,6 +15,7 @@ public interface ILockableContainerBlockEntityAccessor {
     LockItLockResult unlock(ServerPlayerEntity player);
     LockItLockResult claim(ServerPlayerEntity player);
     LockItLockResult unclaim(ServerPlayerEntity player);
+    LockItLockResult unclaim();
     LockItLockResult share(ServerPlayerEntity player, GameProfile target);
     LockItLockResult share(ServerPlayerEntity player, Team team);
     LockItLockResult unshare(ServerPlayerEntity player, GameProfile target);

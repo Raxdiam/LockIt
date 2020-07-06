@@ -138,6 +138,16 @@ public class LockableContainerBlockEntityMixin implements ILockableContainerBloc
     }
 
     @Override
+    public LockItLockResult unclaim() {
+        if (!this.hasOwner()) {
+            return LockItLockResult.failSoft(UNCLAIM, LockMessage.NO_OWNER.get());
+        } else {
+            this.lockit = LockItLock.EMPTY;
+            return LockItLockResult.success(UNCLAIM, "Ownership of this container removed!");
+        }
+    }
+
+    @Override
     public LockItLockResult share(ServerPlayerEntity player, GameProfile target) {
         if (!this.hasOwner()) {
             this.modifyLock(player.getUuid(), new UUID[] {target.getId()});
