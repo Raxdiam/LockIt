@@ -22,6 +22,7 @@ Allows containers to be locked, unlocked, and shared using commands.
 - `/li share team list` - List all shared-with teams for the targeted container block
 - `/li claim` - Claim the targeted container block
 - `/li unclaim` - Un-claim the targeted container block
+- `/li uninstall confirm` - Prepare for uninstallation of mod
 #
 <br/>
 <sub><sup>Thanks to my good friend MrVelocity for providing a name for this project.</sup></sub>

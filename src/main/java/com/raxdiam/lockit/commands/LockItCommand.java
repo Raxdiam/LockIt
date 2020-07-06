@@ -205,14 +205,18 @@ public class LockItCommand implements ICommand<ServerCommandSource> {
     }
 
     private static int performUninstall(ServerCommandSource source) {
-        var world = source.getWorld();
-        var lockableBlockEntities = world.blockEntities.stream().filter(blockEntity -> blockEntity instanceof LockableContainerBlockEntity);
-        for (var blockEntity : lockableBlockEntities.collect(Collectors.toList())) {
-            var accessor = (ILockableContainerBlockEntityAccessor) blockEntity;
-            if (accessor.hasOwner()) {
-                accessor.unclaim();
+        var worlds = source.getMinecraftServer().getWorlds();
+        for (var world : worlds) {
+            var blockEntities = world.blockEntities;
+            var lockableBlockEntities = blockEntities.stream().filter(blockEntity -> blockEntity instanceof LockableContainerBlockEntity);
+            for (var blockEntity : lockableBlockEntities.collect(Collectors.toList())) {
+                var accessor = (ILockableContainerBlockEntityAccessor) blockEntity;
+                if (accessor.hasOwner()) {
+                    accessor.unclaim();
+                }
             }
         }
+
         source.sendFeedback(PrefixedText.createLiteral("All containers unclaimed. It is now safe to remove LockIt.", Formatting.GREEN), false);
         return 1;
     }
